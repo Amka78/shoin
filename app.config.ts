@@ -30,7 +30,7 @@ module.exports = {
     name: `Shoin${appNameSuffix}`,
     slug: "shoin",
     owner: "amka78",
-    version: "0.1.7",
+    version: "0.1.8",
     orientation: "default",
     icon: "./assets/images/app-icon.png",
     experiments: {
