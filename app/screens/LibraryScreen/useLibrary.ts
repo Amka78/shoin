@@ -1,7 +1,7 @@
 import { useConvergence } from "@/hooks/useConvergence"
 import { useElectrobunModal } from "@/hooks/useElectrobunModal"
 import { useStores } from "@/models"
-import type { Book } from "@/models/calibre"
+import type { Book, SavedSearch } from "@/models/calibre"
 import { api } from "@/services/api"
 import { logger } from "@/utils/logger"
 import { perfLog, perfNow } from "@/utils/perf"
@@ -316,6 +316,21 @@ export function useLibrary() {
     await search()
   }
 
+  // 保存した検索を適用する。query / sort / sortOrder / vl をまとめて反映し、検索を1回だけ実行する。
+  const applySavedSearch = async (entry: SavedSearch) => {
+    const library = selectedLibrary
+    if (!library?.searchSetting) return
+
+    const sortKeys = new Set((library.sortField ?? []).map((f) => f.id))
+    const sort = entry.sort && sortKeys.has(entry.sort) ? entry.sort : "title"
+    library.searchSetting.setProp("query", entry.query)
+    library.searchSetting.setProp("sort", sort)
+    library.searchSetting.setProp("sortOrder", entry.sortOrder ?? "asc")
+    library.searchSetting.setProp("vl", entry.vl ?? null)
+    setHeaderSearchText(entry.query)
+    await search()
+  }
+
   const onSearch = async (searchCondition?: string) => {
     const start = perfNow()
     const query = searchCondition ?? ""
@@ -385,6 +400,7 @@ export function useLibrary() {
   const currentListStyle = convergenceHook.isLarge ? desktopViewStyle : mobileViewStyle
 
   return {
+    applySavedSearch,
     currentListStyle,
     onChangeListStyle,
     onUploadFile,

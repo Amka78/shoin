@@ -81,6 +81,7 @@ const LibrarySearchHeader = observer(
     onSort,
     onSelectVirtualLibrary,
   }: LibrarySearchHeaderProps) => {
+    const modal = useElectrobunModal()
     const [draftText, setDraftText] = useState(libraryHook.headerSearchText)
 
     // Only sync draft text when headerSearchText changes externally (e.g., after search)
@@ -120,13 +121,12 @@ const LibrarySearchHeader = observer(
             width="$full"
             testID="library-search-input"
             savedSearches={selectedLibrary?.savedSearches?.slice() ?? []}
-            onSaveSearch={(name, query) => {
-              selectedLibrary?.addSavedSearch(name, query)
+            onSaveSearch={(text) => {
+              modal.openModal("SaveSearchModal", { initialName: text })
             }}
             showSaveLabel={convergenceHook.isLarge}
-            onLoadSearch={(query) => {
-              libraryHook.setHeaderSearchText(query)
-              libraryHook.onSearch(query)
+            onLoadSearch={(entry) => {
+              void libraryHook.applySavedSearch(entry)
             }}
             recentSearches={settingStore.recentSearches.slice()}
           />
@@ -134,8 +134,15 @@ const LibrarySearchHeader = observer(
         <VirtualLibraryButton
           virtualLibraries={selectedLibrary?.virtualLibraries?.slice() ?? []}
           selectedVl={selectedLibrary?.searchSetting?.vl}
+          savedSearches={selectedLibrary?.savedSearches?.slice() ?? []}
           onSelect={(name) => {
             void onSelectVirtualLibrary(name)
+          }}
+          onSelectSavedSearch={(entry) => {
+            void libraryHook.applySavedSearch(entry)
+          }}
+          onManageSavedSearches={() => {
+            modal.openModal("SavedSearchManagerModal", {})
           }}
           isLargeScreen={convergenceHook.isLarge}
         />

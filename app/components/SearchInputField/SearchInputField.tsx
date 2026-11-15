@@ -1,5 +1,6 @@
 import { Box, FormSuggestionPopover, IconButton, InputField } from "@/components"
 import type { MessageKey } from "@/i18n"
+import type { SavedSearch } from "@/models/calibre"
 import { HStack, Input } from "@gluestack-ui/themed"
 import { useCallback, useEffect, useRef, useState } from "react"
 import type { DimensionValue, TextInput as RNTextInput } from "react-native"
@@ -28,10 +29,11 @@ type Props = {
   width?: DimensionValue | "$full"
   testID?: string
   autoFocus?: boolean
-  savedSearches?: Array<{ name: string; query: string }>
-  onSaveSearch?: (name: string, query: string) => void
+  savedSearches?: SavedSearch[]
+  /** 保存要求。保存名の付与などは呼び出し元（ダイアログ等）で行う。 */
+  onSaveSearch?: (text: string) => void
   showSaveLabel?: boolean
-  onLoadSearch?: (query: string) => void
+  onLoadSearch?: (entry: SavedSearch) => void
   recentSearches?: string[]
 }
 
@@ -146,7 +148,7 @@ export function SearchInputField({
 
   const handleSaveSearch = () => {
     if (onSaveSearch && value.trim().length > 0) {
-      onSaveSearch(value.trim(), value.trim())
+      onSaveSearch(value.trim())
     }
   }
 
@@ -211,7 +213,7 @@ export function SearchInputField({
               const name = candidate.slice(SAVED_SEARCH_PREFIX.length)
               const saved = savedSearches?.find((s) => s.name === name)
               if (saved) {
-                onLoadSearch(saved.query)
+                onLoadSearch(saved)
                 setIsSuggestionOpen(false)
               }
               return

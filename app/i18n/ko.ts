@@ -83,6 +83,26 @@ const ko: Translations = {
   virtualLibrary: {
     all: "전체",
     buttonTooltip: "가상 라이브러리",
+    manageSavedSearches: "저장된 검색 관리",
+  },
+  saveSearch: {
+    title: "검색 저장",
+    nameLabel: "이름",
+    queryLabel: "검색어",
+    sortLabel: "정렬",
+    vlLabel: "가상 라이브러리",
+    none: "없음",
+    overwriteTitle: "덮어쓰기 확인",
+    overwriteMessage: "같은 이름의 저장된 검색 \"{{name}}\"이(가) 있습니다. 덮어쓸까요?",
+    overwriteOk: "덮어쓰기",
+  },
+  savedSearchManager: {
+    title: "저장된 검색",
+    edit: "편집",
+    delete: "삭제",
+    deleteConfirmTitle: "삭제 확인",
+    deleteConfirmMessage: "\"{{name}}\"을(를) 삭제할까요?",
+    empty: "저장된 검색이 없습니다",
   },
   bookReadingStyle: {
     title: "읽기 스타일",

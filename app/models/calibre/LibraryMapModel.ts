@@ -11,6 +11,18 @@ import { SearchSettingModel } from "./SearchSettingModel"
 import { SortFieldModel } from "./SortFieldModel"
 import { VirtualLibraryModel } from "./VirtualLibraryModel"
 
+export const SavedSearchModel = types
+  .model("SavedSearchModel", {
+    name: types.string,
+    query: types.string,
+    sort: types.optional(types.maybeNull(types.string), null),
+    sortOrder: types.optional(types.maybeNull(types.string), "asc"),
+    vl: types.optional(types.maybeNull(types.string), null),
+  })
+  .actions(withSetPropAction)
+
+export type SavedSearch = Instance<typeof SavedSearchModel>
+
 export const LibraryMapModel = types
   .model("LibrayMapModel")
   .props({
@@ -25,10 +37,7 @@ export const LibraryMapModel = types
     selectedBook: types.safeReference(types.late(() => BookModel)),
     virtualLibraries: types.array(VirtualLibraryModel),
     ftsEnabled: types.optional(types.boolean, false),
-    savedSearches: types.optional(
-      types.array(types.model({ name: types.string, query: types.string })),
-      [],
-    ),
+    savedSearches: types.optional(types.array(SavedSearchModel), []),
   })
   .actions(withSetPropAction)
   .views((self) => ({
@@ -61,9 +70,21 @@ export const LibraryMapModel = types
       handleCommonApiError(response)
       return false
     }),
-    addSavedSearch: (name: string, query: string) => {
-      if (!root.savedSearches.find((s) => s.name === name)) {
-        root.savedSearches.push({ name, query })
+    upsertSavedSearch: (entry: {
+      name: string
+      query: string
+      sort: string | null
+      sortOrder: string | null
+      vl: string | null
+    }) => {
+      const existing = root.savedSearches.find((s) => s.name === entry.name)
+      if (existing) {
+        existing.setProp("query", entry.query)
+        existing.setProp("sort", entry.sort)
+        existing.setProp("sortOrder", entry.sortOrder)
+        existing.setProp("vl", entry.vl)
+      } else {
+        root.savedSearches.push({ ...entry })
       }
     },
     removeSavedSearch: (name: string) => {

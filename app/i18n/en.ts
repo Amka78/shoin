@@ -94,6 +94,26 @@ const en = {
   virtualLibrary: {
     all: "All",
     buttonTooltip: "Virtual Library",
+    manageSavedSearches: "Manage saved searches",
+  },
+  saveSearch: {
+    title: "Save search",
+    nameLabel: "Name",
+    queryLabel: "Query",
+    sortLabel: "Sort",
+    vlLabel: "Virtual library",
+    none: "None",
+    overwriteTitle: "Overwrite saved search?",
+    overwriteMessage: "A saved search named \"{{name}}\" already exists. Overwrite it?",
+    overwriteOk: "Overwrite",
+  },
+  savedSearchManager: {
+    title: "Saved searches",
+    edit: "Edit",
+    delete: "Delete",
+    deleteConfirmTitle: "Delete saved search?",
+    deleteConfirmMessage: "Delete \"{{name}}\"?",
+    empty: "No saved searches yet",
   },
   bookReadingStyle: {
     title: "Book Reading Style",

@@ -18,6 +18,7 @@ import {
   MetadataModel,
   NodeModel,
   ReadingHistoryModel,
+  SavedSearchModel,
   SearchSettingModel,
   SortFieldModel,
   SubCategoryModel,
@@ -225,5 +226,54 @@ describe("Calibre models", () => {
 
     expect(library.setBook(10)).toBe(false)
     expect(library.selectedBook).toBeUndefined()
+  })
+
+  test("SavedSearchModel accepts old {name, query} snapshots with sort defaults", () => {
+    const search = SavedSearchModel.create({ name: "Dune", query: "title:Dune" })
+
+    expect(search.sort).toBeNull()
+    expect(search.sortOrder).toBe("asc")
+    expect(search.vl).toBeNull()
+  })
+
+  test("LibraryMap upsertSavedSearch adds new entries and overwrites same-name entries", () => {
+    const library = LibraryMapModel.create({
+      id: "main",
+      books: {},
+      searchSetting: null,
+      sortField: [],
+      tagBrowser: [],
+      clientSetting: [],
+      bookDisplayFields: [],
+      fieldMetadataList: {},
+    })
+
+    library.upsertSavedSearch({
+      name: "Dune",
+      query: "title:Dune",
+      sort: "title",
+      sortOrder: "desc",
+      vl: "Favorite",
+    })
+    expect(library.savedSearches.slice()).toEqual([
+      { name: "Dune", query: "title:Dune", sort: "title", sortOrder: "desc", vl: "Favorite" },
+    ])
+
+    // 同名なら上書き（件数は増えない・内容は更新される）
+    library.upsertSavedSearch({
+      name: "Dune",
+      query: "authors:FUNA",
+      sort: "timestamp",
+      sortOrder: "asc",
+      vl: null,
+    })
+    expect(library.savedSearches.length).toBe(1)
+    expect(library.savedSearches[0].query).toBe("authors:FUNA")
+    expect(library.savedSearches[0].sort).toBe("timestamp")
+    expect(library.savedSearches[0].sortOrder).toBe("asc")
+    expect(library.savedSearches[0].vl).toBeNull()
+
+    library.removeSavedSearch("Dune")
+    expect(library.savedSearches.length).toBe(0)
   })
 })

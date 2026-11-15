@@ -228,6 +228,47 @@ describe("useLibrary", () => {
     expect(mockSetProp).toHaveBeenCalledWith("sortOrder", "desc")
   })
 
+  test("applySavedSearch applies query, sort, sortOrder and vl then searches once", async () => {
+    const { result } = await renderUseLibrary()
+    mockSearchLibrary.mockClear()
+
+    await act(async () => {
+      await result.current.applySavedSearch({
+        name: "Dune",
+        query: "title:Dune",
+        sort: "title",
+        sortOrder: "desc",
+        vl: "Favorite",
+      })
+    })
+
+    expect(mockSetProp).toHaveBeenCalledWith("query", "title:Dune")
+    expect(mockSetProp).toHaveBeenCalledWith("sort", "title")
+    expect(mockSetProp).toHaveBeenCalledWith("sortOrder", "desc")
+    expect(mockSetProp).toHaveBeenCalledWith("vl", "Favorite")
+    expect(mockSearchLibrary).toHaveBeenCalledTimes(1)
+  })
+
+  test("applySavedSearch falls back to the title sort when the saved sort field is unknown", async () => {
+    const { result } = await renderUseLibrary()
+    mockSearchLibrary.mockClear()
+
+    await act(async () => {
+      await result.current.applySavedSearch({
+        name: "Old",
+        query: "tag:x",
+        sort: "gone-column",
+        sortOrder: "asc",
+        vl: null,
+      })
+    })
+
+    // mockSelectedLibrary.sortField は空なので "title" にフォールバックする
+    expect(mockSetProp).toHaveBeenCalledWith("sort", "title")
+    expect(mockSetProp).toHaveBeenCalledWith("vl", null)
+    expect(mockSearchLibrary).toHaveBeenCalledTimes(1)
+  })
+
   test("onChangeListStyle changes list style", async () => {
     const { result } = await renderUseLibrary()
     expect(result.current.currentListStyle).toBe("viewList")

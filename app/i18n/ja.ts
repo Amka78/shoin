@@ -96,6 +96,26 @@ const ja: Translations = {
   virtualLibrary: {
     all: "すべて",
     buttonTooltip: "仮想ライブラリ",
+    manageSavedSearches: "保存検索を管理",
+  },
+  saveSearch: {
+    title: "検索を保存",
+    nameLabel: "名前",
+    queryLabel: "検索条件",
+    sortLabel: "ソート",
+    vlLabel: "仮想ライブラリ",
+    none: "なし",
+    overwriteTitle: "上書き確認",
+    overwriteMessage: "同名の保存検索「{{name}}」があります。上書きしますか？",
+    overwriteOk: "上書き",
+  },
+  savedSearchManager: {
+    title: "保存検索",
+    edit: "編集",
+    delete: "削除",
+    deleteConfirmTitle: "削除の確認",
+    deleteConfirmMessage: "「{{name}}」を削除しますか？",
+    empty: "保存された検索はありません",
   },
   bookReadingStyle: {
     title: "読書スタイル",

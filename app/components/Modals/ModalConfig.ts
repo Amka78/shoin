@@ -16,6 +16,8 @@ import { JobQueueModal } from "./JobQueueModal"
 import { LoginModal } from "./LoginModal"
 import { ReadingSettingsModal } from "./ReadingSettingsModal"
 import { ReadingStatsModal } from "./ReadingStatsModal"
+import { SaveSearchModal } from "./SaveSearchModal"
+import { SavedSearchManagerModal } from "./SavedSearchManagerModal"
 import { TocModal } from "./TocModal"
 import { UserPreferencesModal } from "./UserPreferencesModal"
 import { ViewerAutoPageTurnSettingModal } from "./ViewerAutoPageTurnSettingModal"
@@ -39,6 +41,8 @@ export const modalConfig: ModalStackConfig = {
   LoginModal,
   ReadingSettingsModal,
   ReadingStatsModal,
+  SaveSearchModal,
+  SavedSearchManagerModal,
   TocModal,
   UserPreferencesModal,
   ViewerAutoPageTurnSettingModal,

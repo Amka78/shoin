@@ -103,4 +103,9 @@ export type ModalStackParams = {
     visibility: Record<string, boolean>
     onToggle: (key: string, visible: boolean) => void
   }
+  SaveSearchModal: {
+    initialName?: string
+    editingName?: string
+  }
+  SavedSearchManagerModal: Record<string, never>
 }

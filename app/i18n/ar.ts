@@ -83,6 +83,26 @@ const ar: Translations = {
   virtualLibrary: {
     all: "الكل",
     buttonTooltip: "المكتبة الافتراضية",
+    manageSavedSearches: "إدارة عمليات البحث المحفوظة",
+  },
+  saveSearch: {
+    title: "حفظ البحث",
+    nameLabel: "الاسم",
+    queryLabel: "الاستعلام",
+    sortLabel: "الترتيب",
+    vlLabel: "المكتبة الافتراضية",
+    none: "بلا",
+    overwriteTitle: "تأكيد الاستبدال",
+    overwriteMessage: "يوجد بحث محفوظ باسم «{{name}}». هل تريد استبداله؟",
+    overwriteOk: "استبدال",
+  },
+  savedSearchManager: {
+    title: "عمليات البحث المحفوظة",
+    edit: "تعديل",
+    delete: "حذف",
+    deleteConfirmTitle: "تأكيد الحذف",
+    deleteConfirmMessage: "هل تريد حذف «{{name}}»؟",
+    empty: "لا توجد عمليات بحث محفوظة بعد",
   },
   bookReadingStyle: {
     title: "نمط القراءة",
