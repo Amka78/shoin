@@ -120,8 +120,36 @@ sudo install -d -m 1777 /home/calibre-tmp
 ```
 
 ```yaml
+# calibre サービスの docker-compose.yml（修正版）:
+# 変更点は volumes に追加した「/home/calibre-tmp:/tmp」の 1 行のみ。
+# ほか（PUID/PGID・ポート・ネットワーク）は既存の設定をそのまま維持する。
+services:
+  calibre:
+    image: lscr.io/linuxserver/calibre:latest
+    container_name: calibre
+    security_opt:
+      - seccomp:unconfined
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Japan/Tokyo
     volumes:
+      - /home/share/MediaLibrary/Calibre:/config
+      # 描画/変換の一時ファイル（/tmp の calibre_*_tmp_*）は、コンテナの書き込み
+      # レイヤ＝システム /（98G）に書かれると 6 週間で 65GB まで膨らみ ENOSPC に
+      # なる。別 LV の /home（3.5T）へ bind mount して逃がす。
       - /home/calibre-tmp:/tmp
+    # リバースプロキシ経由にするため、ポート公開をやめる場合は削除してよい。
+    ports:
+      - 8080:8080
+      - 8081:8081
+    restart: unless-stopped
+    networks:
+      - proxy_network
+
+networks:
+  proxy_network:
+    external: true
 ```
 
 再作成は `docker compose up -d --force-recreate`。再作成すると 65GB の書き込みレイヤも破棄される。あわせてホスト側で古い残骸を定期削除する。
