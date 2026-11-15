@@ -206,6 +206,7 @@ export function SearchInputField({
           candidates={activeCandidates}
           onSelect={(candidate) => {
             clearBlurTimeout()
+            console.log("TEMP DIAGNOSTIC onSelect", JSON.stringify({ candidate }))
             if (candidate.startsWith(SAVED_SEARCH_PREFIX) && onLoadSearch) {
               const name = candidate.slice(SAVED_SEARCH_PREFIX.length)
               const saved = savedSearches?.find((s) => s.name === name)

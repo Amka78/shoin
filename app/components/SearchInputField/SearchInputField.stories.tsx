@@ -88,7 +88,7 @@ async function playSelectSuggestionClosesSuggestions({
   typeInput(input, "a")
 
   const candidate = await findByTestId(canvasElement, "search-input-suggestion-authors%3A%3D")
-  fireEvent.click(candidate)
+  fireEvent.pointerDown(candidate)
 
   // Suggestions should close
   await waitForAbsence(canvasElement, "search-input-suggestion-authors%3A%3D")

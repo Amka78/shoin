@@ -1,7 +1,7 @@
 import { Box, Pressable } from "@/components"
 import type { Meta, StoryObj } from "@storybook/react"
 import { useForm } from "react-hook-form"
-import { act, waitFor } from "@testing-library/react"
+import { act, fireEvent, waitFor } from "@testing-library/react"
 import { FormMultipleInputField } from "./FormMultipleInputField"
 
 import { withComponentHolder } from "../../../.storybook/stories/ComponentHolder"
@@ -230,7 +230,7 @@ async function playMultipleSelectSuggestionUpdatesInput({
   )
 
   await act(async () => {
-    candidate.click()
+    fireEvent.pointerDown(candidate)
   })
 
   await waitForInputValue(input, "Beta", FAST_TIMEOUT)
@@ -254,7 +254,7 @@ async function playMultipleSelectSuggestionClosesSuggestionsAndUpdatesInput({
   const candidate = await finder.findByTestId(canvasElement, candidateTestId, ULTRA_FAST_TIMEOUT)
 
   await act(async () => {
-    candidate.click()
+    fireEvent.pointerDown(candidate)
   })
 
   await waitForInputValue(input, "Beta", FAST_TIMEOUT)

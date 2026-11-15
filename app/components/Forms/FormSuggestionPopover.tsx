@@ -84,6 +84,26 @@ export function FormSuggestionPopover(props: FormSuggestionPopoverProps) {
     }
   }, [isOpen])
 
+  useEffect(() => {
+    if (Platform.OS !== "web" || typeof document === "undefined") return undefined
+
+    const onPointerDownCapture = (event: Event) => {
+      const target = event.target as HTMLElement | null
+      const testId = target?.getAttribute?.("data-testid") ?? target?.tagName ?? "?"
+      const pointerEvent = event as PointerEvent
+      console.log(
+        "TEMP DIAGNOSTIC pointerdown",
+        JSON.stringify({
+          targetTestId: testId.slice(0, 80),
+          x: Math.round(pointerEvent.clientX ?? -1),
+          y: Math.round(pointerEvent.clientY ?? -1),
+        }),
+      )
+    }
+    document.addEventListener("pointerdown", onPointerDownCapture, true)
+    return () => document.removeEventListener("pointerdown", onPointerDownCapture, true)
+  }, [])
+
   // On web, render a simple dropdown to avoid Popover focus trapping issues
   if (Platform.OS === "web") {
     const suggestions =
@@ -105,14 +125,31 @@ export function FormSuggestionPopover(props: FormSuggestionPopoverProps) {
               }}
             >
               {candidates.map((candidate) => (
-                <Pressable
+                <div
                   key={`${testIdPrefix}-${candidate}`}
-                  testID={`${
+                  role="option"
+                  aria-selected={false}
+                  data-testid={`${
                     candidateTestIDPrefix ?? `${testIdPrefix}-suggestion`
                   }-${encodeURIComponent(candidate)}`}
-                  onPress={() => {
+                  // TEMP DIAGNOSTIC: pointerdown で即時選択する（click 成立前に候補が消える
+                  // 環境でも選択が確定する）。preventDefault でフォーカス移動（input blur）を
+                  // 防ぎ、候補の unmount を click 成立後まで遅らせる。
+                  onPointerDown={(event) => {
+                    event.preventDefault()
+                    console.log(
+                      "TEMP DIAGNOSTIC candidate onPointerDown",
+                      JSON.stringify({ candidate }),
+                    )
                     onSelect(candidate)
                   }}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault()
+                      onSelect(candidate)
+                    }
+                  }}
+                  style={{ cursor: "pointer" }}
                 >
                   <div
                     style={{
@@ -126,7 +163,7 @@ export function FormSuggestionPopover(props: FormSuggestionPopoverProps) {
                       {candidate}
                     </Text>
                   </div>
-                </Pressable>
+                </div>
               ))}
             </div>,
             document.body,

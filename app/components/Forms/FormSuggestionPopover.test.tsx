@@ -240,7 +240,7 @@ describe("FormSuggestionPopover", () => {
       ).not.toBeNull()
     })
 
-    fireEvent.click(
+    fireEvent.pointerDown(
       document.body.querySelector('[data-testid="form-suggestion-test-suggestion-Alpha"]')!,
     )
 

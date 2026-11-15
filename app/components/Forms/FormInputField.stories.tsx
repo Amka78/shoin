@@ -1,7 +1,7 @@
 import { Box, Input, Pressable } from "@/components"
 import type { Meta, StoryObj } from "@storybook/react"
 import { useForm } from "react-hook-form"
-import { act } from "@testing-library/react"
+import { act, fireEvent } from "@testing-library/react"
 import { FormInputField } from "./FormInputField"
 import { findByTestId, typeInput, waitForAbsence } from "../../../.storybook/stories/storyPlayDom"
 
@@ -88,14 +88,9 @@ async function playSelectSuggestionUpdatesInput({
   })
 
   const candidate = await findByTestId(canvasElement, "form-input-suggestion-title-Beta")
-  const mouseEventConstructor = input.ownerDocument.defaultView?.MouseEvent
-  if (!mouseEventConstructor) {
-    throw new Error("MouseEvent constructor is unavailable.")
-  }
 
   await act(async () => {
-    candidate.dispatchEvent(new mouseEventConstructor("mousedown", { bubbles: true }))
-    candidate.click()
+    fireEvent.pointerDown(candidate)
   })
 
   for (let retry = 0; retry < 15; retry += 1) {
@@ -123,7 +118,7 @@ async function playSelectSuggestionClosesSuggestionsAndUpdatesInput({
   const candidateTestId = "form-input-suggestion-title-Beta"
   const candidate = await findByTestId(canvasElement, candidateTestId)
   await act(async () => {
-    candidate.click()
+    fireEvent.pointerDown(candidate)
   })
 
   for (let retry = 0; retry < 15; retry += 1) {
