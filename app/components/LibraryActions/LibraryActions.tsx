@@ -27,25 +27,6 @@ export function LibraryActions({
 
   return (
     <>
-      <AuthButton
-        mode={authenticationStore.isAuthenticated ? "logout" : "login"}
-        onLoginPress={() => {
-          modal.openModal("LoginModal", {
-            onLoginPress: () => {
-              navigation.navigate("Connect")
-            },
-          })
-        }}
-        onLogoutPress={() => {
-          authenticationStore.logout()
-          if (isLarge) {
-            modal.openModal("ConnectModal", {})
-            return
-          }
-
-          navigation.navigate("Connect")
-        }}
-      />
       <AddFileButton
         onDocumentSelect={async (documents) => {
           await onUploadFile(documents)
@@ -106,6 +87,25 @@ export function LibraryActions({
           <MenuItemLabel>{translate("about.title")}</MenuItemLabel>
         </MenuItem>
       </Menu>
+      <AuthButton
+        mode={authenticationStore.isAuthenticated ? "logout" : "login"}
+        onLoginPress={() => {
+          modal.openModal("LoginModal", {
+            onLoginPress: () => {
+              navigation.navigate("Connect")
+            },
+          })
+        }}
+        onLogoutPress={() => {
+          authenticationStore.logout()
+          if (isLarge) {
+            modal.openModal("ConnectModal", {})
+            return
+          }
+
+          navigation.navigate("Connect")
+        }}
+      />
     </>
   )
 }

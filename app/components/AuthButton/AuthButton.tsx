@@ -1,4 +1,4 @@
-import { IconButton } from "@/components"
+import { TooltipIconButton } from "@/components"
 
 export type AuthButtonProp = {
   mode: "login" | "logout"
@@ -8,10 +8,11 @@ export type AuthButtonProp = {
 
 export function AuthButton(props: AuthButtonProp) {
   return (
-    <IconButton
+    <TooltipIconButton
       variant="staggerChild"
       iconSize="md-"
-      name={props.mode === "login" ? "logout" : "login"}
+      name={props.mode === "login" ? "login" : "logout"}
+      tooltipTx={props.mode === "login" ? "common.login" : "common.logOut"}
       onPress={() => {
         if (props.mode === "login") {
           if (props.onLoginPress) {
