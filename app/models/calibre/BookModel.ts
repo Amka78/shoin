@@ -19,6 +19,7 @@ import {
   type LastReadPosition,
   api,
 } from "../../services/api"
+import type { GeneralApiProblem } from "../../services/api/apiProblem"
 import type {
   AddedFormatEntry,
   AnnotationsMap,
@@ -91,9 +92,10 @@ function isConvertManifestResponse(
   return response.kind === "ok" && "files" in response.data
 }
 
-function isConvertJobStatusResponse(
-  response: BookManifestResponse,
-): response is { kind: "ok"; data: { job_status: "waiting" | "finished"; traceback?: string } } {
+function isConvertJobStatusResponse(response: BookManifestResponse): response is {
+  kind: "ok"
+  data: { job_status: "waiting" | "finished"; aborted?: boolean; traceback?: string }
+} {
   return response.kind === "ok" && "job_status" in response.data
 }
 
@@ -116,6 +118,40 @@ function isConversionFinishedResponse(response: ConversionStatusResponse): respo
   }
 } {
   return response.kind === "ok" && response.data.running === false
+}
+
+// 変換・描画ジョブは 6 秒間隔でポーリングする。サーバーのジョブが固まって
+// 永久に終わらない（job_status が "waiting" のまま等）ケースでも「変換中...」の
+// ままアプリ側が無限ループしないよう、最大試行回数で打ち切ってエラーにする。
+const CONVERSION_POLL_INTERVAL_MS = 6000
+const MAX_CONVERSION_POLL_ROUNDS = 100
+
+function conversionTimeoutMessage(): string {
+  const minutes = (MAX_CONVERSION_POLL_ROUNDS * CONVERSION_POLL_INTERVAL_MS) / 60_000
+  return `The conversion timed out after ${minutes} minutes`
+}
+
+function conversionProblemMessage(problem: GeneralApiProblem): string {
+  switch (problem.kind) {
+    case "cannot-connect":
+      return "Could not connect to the Calibre server"
+    case "timeout":
+      return "The Calibre server did not respond in time"
+    case "server":
+      return "The Calibre server reported an error"
+    case "unauthorized":
+      return "Authentication with the Calibre server failed"
+    case "forbidden":
+      return "Access to the Calibre server was denied"
+    case "rejected":
+      return "The Calibre server rejected the request"
+    case "bad-data":
+      return "Unexpected response from the Calibre server"
+    case "unknown":
+      return "An unexpected error occurred while contacting the Calibre server"
+    default:
+      return "Book conversion failed"
+  }
 }
 
 export type TocItem = {
@@ -228,8 +264,7 @@ export const BookModel = types
         if (startResponse.kind === "not-found") {
           throw new Error(startResponse.message)
         }
-        handleCommonApiError(startResponse)
-        return
+        throw new Error(conversionProblemMessage(startResponse))
       }
 
       return startResponse.data
@@ -247,7 +282,7 @@ export const BookModel = types
     ) {
       const convertParams = convertOptions ? convertOptionsToParams(convertOptions) : undefined
       const inputFmt = convertOptions?.inputFormat
-      let response: BookManifestResponse | undefined
+      let manifest: ApiBookManifestResultType | undefined
 
       if (inputFmt) {
         const startResponse = yield api.startConversion(
@@ -262,11 +297,11 @@ export const BookModel = types
           if (startResponse.kind === "not-found") {
             throw new Error(startResponse.message)
           }
-          handleCommonApiError(startResponse)
-          return
+          throw new Error(conversionProblemMessage(startResponse))
         }
 
-        while (true) {
+        let conversionFinished = false
+        for (let round = 0; round < MAX_CONVERSION_POLL_ROUNDS; round++) {
           const statusResponse: ConversionStatusResponse = yield api.getConversionStatus(
             libraryId,
             startResponse.data,
@@ -276,18 +311,16 @@ export const BookModel = types
             if (statusResponse.kind === "not-found") {
               throw new Error(statusResponse.message)
             }
-            handleCommonApiError(statusResponse)
-            return
+            throw new Error(conversionProblemMessage(statusResponse))
           }
 
           if (isConversionRunningResponse(statusResponse)) {
-            yield delay(6000)
+            yield delay(CONVERSION_POLL_INTERVAL_MS)
             continue
           }
 
           if (!isConversionFinishedResponse(statusResponse)) {
-            yield delay(6000)
-            continue
+            throw new Error("Unexpected conversion status from the Calibre server")
           }
 
           if (!statusResponse.data.ok) {
@@ -298,28 +331,58 @@ export const BookModel = types
             )
           }
 
+          conversionFinished = true
           break
         }
+
+        if (!conversionFinished) {
+          throw new Error(conversionTimeoutMessage())
+        }
       }
 
-      while (!response || !isConvertManifestResponse(response)) {
-        response = yield api.CheckBookConverting(libraryId, root.id, format)
+      for (let round = 0; round < MAX_CONVERSION_POLL_ROUNDS; round++) {
+        const checkResponse: BookManifestResponse = yield api.CheckBookConverting(
+          libraryId,
+          root.id,
+          format,
+        )
 
-        if (response!.kind !== "ok") {
-          if (response!.kind === "not-found") {
-            throw new Error((response as { message?: string }).message ?? "API error")
+        if (checkResponse.kind !== "ok") {
+          if (checkResponse.kind === "not-found") {
+            throw new Error((checkResponse as { message?: string }).message ?? "API error")
           }
-          handleCommonApiError(response!)
-        } else if (isConvertJobStatusResponse(response)) {
-          if (response.data.job_status === "finished" && response.data.traceback) {
-            throw new Error(response.data.traceback)
-          }
+          throw new Error(conversionProblemMessage(checkResponse))
         }
 
-        yield delay(6000)
+        if (isConvertManifestResponse(checkResponse)) {
+          manifest = checkResponse.data
+          break
+        }
+
+        if (isConvertJobStatusResponse(checkResponse)) {
+          if (checkResponse.data.job_status === "finished") {
+            if (checkResponse.data.traceback) {
+              throw new Error(checkResponse.data.traceback)
+            }
+            throw new Error(
+              checkResponse.data.aborted
+                ? "Conversion aborted"
+                : "Conversion finished without producing a book",
+            )
+          }
+          // job_status === "waiting" → サーバー側でジョブ実行中。次のポーリングへ。
+        } else {
+          throw new Error("Unexpected response from the Calibre server while preparing the book")
+        }
+
+        yield delay(CONVERSION_POLL_INTERVAL_MS)
       }
 
-      const result: ApiBookManifestResultType = response.data
+      if (!manifest) {
+        throw new Error(conversionTimeoutMessage())
+      }
+
+      const result: ApiBookManifestResultType = manifest
       const htmlSpinePaths = result.spine.filter((path) => {
         const file = result.files[path]
         if (file?.is_html) {

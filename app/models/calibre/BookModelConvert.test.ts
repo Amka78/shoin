@@ -1,4 +1,8 @@
 import { vi, afterEach, beforeAll, beforeEach, describe, expect, test } from "vitest"
+import {
+  type ConvertOptions,
+  DEFAULT_CONVERT_OPTIONS,
+} from "@/components/BookConvertForm/ConvertOptions"
 
 // Mock delay so that the polling loop doesn't actually wait
 vi.doMock("@/utils/delay", () => ({ delay: vi.fn().mockResolvedValue(undefined) }))
@@ -6,12 +10,15 @@ vi.doMock("@/utils/delay", () => ({ delay: vi.fn().mockResolvedValue(undefined) 
 const mockCheckBookConverting = vi.fn()
 const mockGetLibraryInformation = vi.fn()
 const mockEditBook = vi.fn()
+const mockStartConversion = vi.fn()
+const mockGetConversionStatus = vi.fn()
 
 vi.doMock("@/services/api", () => ({
   api: {
     CheckBookConverting: mockCheckBookConverting,
     getLibraryInformation: mockGetLibraryInformation,
-    getConversionStatus: vi.fn(),
+    getConversionStatus: mockGetConversionStatus,
+    startConversion: mockStartConversion,
     editBook: mockEditBook,
   },
 }))
@@ -105,6 +112,15 @@ const createBook = () =>
     hash: null,
     pageProgressionDirection: null,
   })
+
+const convertOptions = (
+  overrides: Partial<Pick<ConvertOptions, "inputFormat" | "outputFormat">> = {},
+): ConvertOptions => ({
+  ...DEFAULT_CONVERT_OPTIONS,
+  inputFormat: "EPUB",
+  outputFormat: "AZW3",
+  ...overrides,
+})
 
 describe("BookModel.convert", () => {
   beforeEach(() => {
@@ -503,6 +519,183 @@ describe("BookModel.convert", () => {
     await book.convert("TXT", "lib1", async () => {})
 
     expect(book.path.slice()).toEqual(["index.html"])
+  })
+})
+
+describe("BookModel.convert conversion error handling", () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  test("throws the server traceback instead of polling forever", async () => {
+    mockCheckBookConverting.mockResolvedValue({
+      kind: "ok",
+      data: { job_status: "finished", traceback: "Traceback (most recent call last):\nboom" },
+    })
+    const book = createBook()
+
+    await expect(book.convert("AZW3", "lib1", async () => {})).rejects.toThrow(
+      "Traceback (most recent call last):\nboom",
+    )
+    expect(mockCheckBookConverting).toHaveBeenCalledTimes(1)
+  })
+
+  test("throws when the job finished without a traceback instead of polling forever", async () => {
+    mockCheckBookConverting.mockResolvedValue({
+      kind: "ok",
+      data: { job_status: "finished" },
+    })
+    const book = createBook()
+
+    await expect(book.convert("AZW3", "lib1", async () => {})).rejects.toThrow(
+      "Conversion finished without producing a book",
+    )
+    expect(mockCheckBookConverting).toHaveBeenCalledTimes(1)
+  })
+
+  test("throws when the job was aborted", async () => {
+    mockCheckBookConverting.mockResolvedValue({
+      kind: "ok",
+      data: { job_status: "finished", aborted: true },
+    })
+    const book = createBook()
+
+    await expect(book.convert("AZW3", "lib1", async () => {})).rejects.toThrow("Conversion aborted")
+  })
+
+  test("throws on API problems (e.g. timeout) instead of polling forever", async () => {
+    mockCheckBookConverting.mockResolvedValue({ kind: "timeout" })
+    const book = createBook()
+
+    await expect(book.convert("AZW3", "lib1", async () => {})).rejects.toThrow(
+      "The Calibre server did not respond in time",
+    )
+    expect(mockCheckBookConverting).toHaveBeenCalledTimes(1)
+  })
+
+  test("throws on an unrecognized ok response instead of polling forever", async () => {
+    mockCheckBookConverting.mockResolvedValue({ kind: "ok", data: {} })
+    const book = createBook()
+
+    await expect(book.convert("AZW3", "lib1", async () => {})).rejects.toThrow(
+      "Unexpected response from the Calibre server while preparing the book",
+    )
+    expect(mockCheckBookConverting).toHaveBeenCalledTimes(1)
+  })
+
+  test("stops polling after the round cap when the job stays waiting forever", async () => {
+    mockCheckBookConverting.mockResolvedValue({ kind: "ok", data: { job_status: "waiting" } })
+    const book = createBook()
+
+    await expect(book.convert("AZW3", "lib1", async () => {})).rejects.toThrow(
+      "The conversion timed out after 10 minutes",
+    )
+    expect(mockCheckBookConverting.mock.calls.length).toBeGreaterThan(1)
+  })
+
+  test("proceeds once the manifest becomes ready after waiting", async () => {
+    mockCheckBookConverting
+      .mockResolvedValueOnce({ kind: "ok", data: { job_status: "waiting" } })
+      .mockResolvedValue(createManifest({ book_format: "AZW3", spine: ["xhtml/part0000.xhtml"] }))
+    const book = createBook()
+
+    await book.convert("AZW3", "lib1", async () => {})
+
+    expect(book.path.slice()).toEqual(["xhtml/part0000.xhtml"])
+  })
+
+  test("getConversionStatus API problems throw instead of polling forever", async () => {
+    mockStartConversion.mockResolvedValue({ kind: "ok", data: 42 })
+    mockGetConversionStatus.mockResolvedValue({ kind: "server" })
+    mockCheckBookConverting.mockResolvedValue(createManifest({}))
+    const book = createBook()
+
+    await expect(book.convert("AZW3", "lib1", async () => {}, convertOptions())).rejects.toThrow(
+      "The Calibre server reported an error",
+    )
+    expect(mockGetConversionStatus).toHaveBeenCalledTimes(1)
+  })
+
+  test("getConversionStatus failure traceback is thrown", async () => {
+    mockStartConversion.mockResolvedValue({ kind: "ok", data: 42 })
+    mockGetConversionStatus.mockResolvedValue({
+      kind: "ok",
+      data: {
+        running: false,
+        ok: false,
+        was_aborted: false,
+        traceback: "Failed to run pipe worker",
+        log: "",
+      },
+    })
+    mockCheckBookConverting.mockResolvedValue(createManifest({}))
+    const book = createBook()
+
+    await expect(book.convert("AZW3", "lib1", async () => {}, convertOptions())).rejects.toThrow(
+      "Failed to run pipe worker",
+    )
+  })
+
+  test("converts successfully after polling both conversion and manifest", async () => {
+    mockStartConversion.mockResolvedValue({ kind: "ok", data: 42 })
+    mockGetConversionStatus
+      .mockResolvedValueOnce({
+        kind: "ok",
+        data: { running: true, percent: 0.5, msg: "Working" },
+      })
+      .mockResolvedValue({
+        kind: "ok",
+        data: {
+          running: false,
+          ok: true,
+          was_aborted: false,
+          traceback: "",
+          log: "",
+        },
+      })
+    mockCheckBookConverting.mockResolvedValue(
+      createManifest({ book_format: "AZW3", spine: ["xhtml/part0000.xhtml"] }),
+    )
+    const book = createBook()
+
+    await book.convert("AZW3", "lib1", async () => {}, convertOptions())
+
+    expect(mockGetConversionStatus).toHaveBeenCalledTimes(2)
+    expect(book.path.slice()).toEqual(["xhtml/part0000.xhtml"])
+  })
+})
+
+describe("BookModel.startConvert", () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  test("returns the job id when the job is queued", async () => {
+    mockStartConversion.mockResolvedValue({ kind: "ok", data: 42 })
+    const book = createBook()
+
+    const jobId = await book.startConvert("AZW3", "lib1", convertOptions())
+
+    expect(jobId).toBe(42)
+    expect(mockStartConversion).toHaveBeenCalledWith("lib1", 1, "EPUB", "AZW3", expect.any(Object))
+  })
+
+  test("throws API problems instead of returning silently", async () => {
+    mockStartConversion.mockResolvedValue({ kind: "timeout" })
+    const book = createBook()
+
+    await expect(book.startConvert("AZW3", "lib1", convertOptions())).rejects.toThrow(
+      "The Calibre server did not respond in time",
+    )
+  })
+
+  test("throws when no input format is specified", async () => {
+    const book = createBook()
+
+    await expect(
+      book.startConvert("AZW3", "lib1", { ...convertOptions(), inputFormat: null }),
+    ).rejects.toThrow("No input format specified")
+    expect(mockStartConversion).not.toHaveBeenCalled()
   })
 })
 
