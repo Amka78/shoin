@@ -17,14 +17,13 @@ import React from "react"
 import { Platform, View, useColorScheme } from "react-native"
 import { SafeAreaProvider, initialWindowMetrics } from "react-native-safe-area-context"
 
-import { config } from "@gluestack-ui/config"
 import { GluestackUIProvider } from "@gluestack-ui/themed"
 import { GestureHandlerRootView } from "react-native-gesture-handler"
 import Config from "./config"
 import { useInitialRootStore } from "./models"
 import { AppNavigator, type NavigationStateLike, useNavigationPersistence } from "./navigators"
 import { ErrorBoundary } from "./screens/ErrorScreen/ErrorBoundary"
-import { customFontsToLoad } from "./theme"
+import { gluestackConfig, customFontsToLoad } from "./theme"
 import { logger } from "./utils/logger"
 import { installLogSink } from "./utils/logSink"
 import * as storage from "./utils/storage"
@@ -128,7 +127,10 @@ function App(props: AppProps) {
   return (
     <SafeAreaProvider initialMetrics={initialWindowMetrics}>
       <GestureHandlerRootView style={{ flex: 1 }}>
-        <GluestackUIProvider config={config} colorMode={colorScheme === "dark" ? "dark" : "light"}>
+        <GluestackUIProvider
+          config={gluestackConfig}
+          colorMode={colorScheme === "dark" ? "dark" : "light"}
+        >
           <ErrorBoundary catchErrors={Config.catchErrors}>
             <AppNavigator
               initialState={initialNavigationState}

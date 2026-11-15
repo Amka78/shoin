@@ -198,6 +198,7 @@ export function BookEditModalTemplate(props: BookEditModalTemplateProps) {
           })}
           tx={"common.ok"}
           disabled={Object.keys(form.formState.dirtyFields).length <= 0}
+          variant="solid"
         />
         <Button
           onPress={() => {

@@ -63,7 +63,7 @@ export const BookEditScreen: FC = observer(() => {
   useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: !convergenceHook.isLarge
-        ? () => <Button tx={"bookEditScreen.save"} onPress={onSubmit} />
+        ? () => <Button tx={"bookEditScreen.save"} onPress={onSubmit} variant="solid" />
         : undefined,
     })
   }, [convergenceHook.isLarge, navigation, onSubmit])
@@ -123,7 +123,7 @@ export const BookEditScreen: FC = observer(() => {
       </ScrollView>
       {convergenceHook.isLarge ? (
         <VStack justifyContent={"flex-end"} flex={1}>
-          <Button tx={"bookEditScreen.save"} onPress={onSubmit} />
+          <Button tx={"bookEditScreen.save"} onPress={onSubmit} variant="solid" />
         </VStack>
       ) : null}
     </RootContainer>

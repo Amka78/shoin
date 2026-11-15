@@ -34,8 +34,6 @@ type BookListItemProps = {
 }
 
 type ReadStatusValue = "reading" | "finished"
-const SELECTED_OUTLINE_COLOR = "#3B82F6"
-const SELECTED_OVERLAY_COLOR = "rgba(59, 130, 246, 0.08)"
 
 const STATUS_ICON: Record<
   ReadStatusValue,
@@ -81,7 +79,7 @@ export const BookListItem = memo(function BookListItem({
       style={[
         styles.row,
         { borderBottomColor: palette.borderSubtle },
-        isSelected && { backgroundColor: SELECTED_OVERLAY_COLOR },
+        isSelected && { backgroundColor: palette.accentSoft },
       ]}
     >
       <Pressable
@@ -195,7 +193,7 @@ export const BookListItem = memo(function BookListItem({
       {isSelected ? (
         <Box
           pointerEvents="none"
-          style={styles.selectedOutline}
+          style={[styles.selectedOutline, { borderColor: palette.accent }]}
           testID="book-list-item-selected-outline"
         />
       ) : null}
@@ -254,8 +252,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    borderColor: SELECTED_OUTLINE_COLOR,
-    borderRadius: 10,
+    borderRadius: 5,
     borderWidth: 2,
     pointerEvents: "none",
   },

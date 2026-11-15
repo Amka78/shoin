@@ -38,8 +38,6 @@ const SERIES_NAME_COLUMN_WIDTH = 120
 const SERIES_INDEX_COLUMN_WIDTH = 60
 const TAGS_COLUMN_WIDTH = 180
 const PUBLISHER_COLUMN_WIDTH = 150
-const SELECTED_OUTLINE_COLOR = "#3B82F6"
-const SELECTED_OVERLAY_COLOR = "rgba(59, 130, 246, 0.08)"
 const COPIED_BACKGROUND_COLOR = "rgba(34, 197, 94, 0.12)"
 
 // Metadata columns whose width the user can change by dragging the header border.
@@ -540,7 +538,10 @@ export const LibraryTableItem = observer(function LibraryTableItem({
 
   return (
     <VStack
-      style={[styles.rowContainer, isSelected ? styles.rowSelected : undefined]}
+      style={[
+        styles.rowContainer,
+        isSelected ? { backgroundColor: palette.accentSoft } : undefined,
+      ]}
       testID={`library-table-row-${book.id}`}
     >
       <HStack alignItems="center">
@@ -549,7 +550,7 @@ export const LibraryTableItem = observer(function LibraryTableItem({
           onLongPress={onLongPress}
           style={[
             styles.bookCell,
-            { backgroundColor: isSelected ? SELECTED_OVERLAY_COLOR : palette.bg0 },
+            { backgroundColor: isSelected ? palette.accentSoft : palette.bg0 },
           ]}
           testID={`library-table-select-${book.id}`}
         >
@@ -564,7 +565,7 @@ export const LibraryTableItem = observer(function LibraryTableItem({
             style={[
               styles.titleCell,
               { width: columnWidths.title },
-              { backgroundColor: isSelected ? SELECTED_OVERLAY_COLOR : palette.bg0 },
+              { backgroundColor: isSelected ? palette.accentSoft : palette.bg0 },
             ]}
           >
             <HStack alignItems="center" space="xs">
@@ -850,7 +851,7 @@ export const LibraryTableItem = observer(function LibraryTableItem({
       {isSelected ? (
         <Box
           pointerEvents="none"
-          style={styles.selectedOutline}
+          style={[styles.selectedOutline, { borderColor: palette.accent }]}
           testID={`library-table-selected-outline-${book.id}`}
         />
       ) : null}
@@ -888,9 +889,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     position: "relative",
     paddingVertical: 8,
-  },
-  rowSelected: {
-    backgroundColor: SELECTED_OVERLAY_COLOR,
   },
   bookCell: {
     alignItems: "center",
@@ -960,8 +958,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    borderColor: SELECTED_OUTLINE_COLOR,
-    borderRadius: 10,
+    borderRadius: 5,
     borderWidth: 2,
     pointerEvents: "none",
   },

@@ -41,6 +41,7 @@ export function ConnectContent({
         tx="connectScreen.connect"
         onPress={onSubmit}
         width={"$full"}
+        variant="solid"
       />
     </VStack>
   )

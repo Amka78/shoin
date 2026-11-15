@@ -17,44 +17,52 @@ The visual mood draws from references like:
 
 ### Tone in One Sentence
 
-> *The design is cooler than it is warm, more intellectual than playful, and more confident than friendly.*
+> *The design is calmer than it is loud, more intellectual than playful, and more confident than friendly.*
 
 ### Core Principles
 
-**Monochrome authority** — A near-colorless palette is not a limitation; it is the statement. The absence of decorative color communicates maturity and focus. Color appears only where it carries information.
+**Washi and ink** — The palette is a monochrome of washi paper (warm off-white), ink (deep warm black), and one accent color: vermilion(朱). The absence of decorative color is the statement: layering is built from thin lines and paper tones, not from hue.
+
+**Vermilion only where it means something** — Accent color is reserved for two contexts: the primary action of a screen and reading-status indicators on book cards. Nothing else gets color.
 
 **Content-first** — Book covers are the primary visual element. Every UI decision should ask: "does this compete with the cover?" If yes, dial it back.
 
 **Typographic hierarchy** — The pairing of a Japanese serif (Noto Serif JP) with a geometric grotesque (Space Grotesk) is deliberately intellectual. Serif for ideas; grotesque for function. The contrast between them carries the design's personality.
 
-**Cold over warm** — When in doubt, lean toward cooler, blue-gray tones rather than warm beige or cream. The palette should feel more like steel and paper than wood and leather.
+**Warm over cold** — The palette leans warm, like paper and ink. Washi backgrounds and ink text read as a calm, editorial space. Avoid cool blue- or green-gray surfaces.
 
 **Honest chrome** — Navigation and controls exist only to serve the content. They should be visually quiet and structurally clear — never decorative, never playful.
 
-**Consistent across surfaces** — The same cool, measured visual identity should be recognizable whether the app is running on an iPhone or a desktop. Layout adapts; character does not.
+**Consistent across surfaces** — The same warm, measured visual identity should be recognizable whether the app is running on an iPhone or a desktop. Layout adapts; character does not.
 
 ---
 
 ## 2. Color
 
-The palette is **monochromatic by design** — this is a deliberate aesthetic choice, not a constraint. Cool blue-gray tones underpin every surface. Color appears only where it carries semantic meaning (reading status). The result is an interface that feels precise and self-assured, like a printed design book.
+The palette is **monochrome by design** — washi paper, ink, and vermilion. Near-zero corner radii and zero drop shadows, with thin rules and whitespace carrying the hierarchy. Color appears only where it carries meaning (primary actions, reading status). This is the "Shoin Ink" direction chosen in the 2026-11-15 design refresh (artifacts/design-refresh/mockups.html, 案A).
 
 ### 2.1 Palette
 
-The overall hue of the palette leans **cool**: whites with a faint blue-gray cast, near-blacks with blue-gray depth. Avoid warm beiges, cream whites, or reddish-gray tones — they undermine the intellectual character.
+The overall hue is **warm**: whites have a faint paper cast, near-blacks are warm ink. Avoid cool blue-gray tones, pure white backgrounds, and pure black text.
 
-| Role | Light | Dark |
+| Role | Light (washi) | Dark (night ink) |
 |------|-------|------|
-| **Background** | `#ffffff` | `#0b0c0f` |
-| **Surface** (cards, panels) | `#f7f9fc` | `rgba(15,18,24,0.92)` |
-| **Surface Muted** (subtle containers) | `#eef1f6` | `rgba(15,18,24,0.75)` |
-| **Surface Strong** (headers, elevated) | `#e6eaf1` | `#151a22` |
-| **Text Primary** | `#111318` | `#e6e8ee` |
-| **Text Secondary** (metadata, captions) | `#3a3f48` | `#b7bcc7` |
-| **Border Subtle** (dividers, inputs) | `#d6dbe4` | `#2a2f3a` |
-| **Border Strong** (visible outlines) | `#b6bdc9` | `#3a414f` |
+| **Background** (`bg0`) | `#F4EFE6` | `#16130E` |
+| **Surface** (cards, panels, modals) | `#FBF8F2` | `#1E1A14` |
+| **Surface Muted** (subtle containers) | `#F1EBDF` | `rgba(30,26,20,0.72)` |
+| **Surface Strong** (elevated, sidebar) | `#EEE7DA` | `#262019` |
+| **Text Primary** | `#1B1712` | `#EAE4D9` |
+| **Text Secondary** (metadata, captions) | `#6F6558` | `#A69D8E` |
+| **Text Tertiary** (faint labels) | `#9B9081` | `#7E7566` |
+| **Border Subtle** (dividers, inputs) | `#DED3C1` | `#3A352C` |
+| **Border Strong** (visible outlines) | `#C7B9A1` | `#4A4439` |
+| **Accent (vermilion)** | `#B0392A` | `#C95B4A` |
+| **Accent Ink** (text on accent) | `#FBF5EC` | `#1A1510` |
+| **Accent Soft** (selected row bg) | `rgba(176,57,42,0.09)` | `rgba(201,91,74,0.14)` |
 
-Background gradients flow softly top-to-bottom (`bg0 → surfaceMuted`) to give depth without decoration. They reinforce the cool blue-gray atmosphere; never use warm-toned gradients.
+**Corner radii**: 2 / 3 / 5 px (`$xs`–`$lg` in the gluestack config override). Pill shapes (`$full`) are limited to small badges. **Shadows**: none — hierarchy comes from `borderSubtle` rules and paper-tone layers.
+
+Background gradients flow softly top-to-bottom (`bg0 → surfaceMuted`) to give depth without decoration. They reinforce the warm washi atmosphere; never use saturated or cool-toned gradients.
 
 ### 2.2 Reading Status Colors
 
@@ -66,11 +74,11 @@ These are the **only** saturated colors in the system, and they are reserved exc
 | Reading | `#F97316` | Badge icon on book card |
 | Finished | `#22C55E` | Badge icon on book card |
 
-> **Rule**: These three colors must not appear anywhere outside of reading-status contexts — not in buttons, alerts, tags, or highlights.
+> **Rule**: These three status colors must not appear anywhere outside of reading-status contexts — not in buttons, alerts, tags, or highlights. The single extra use of color is **vermilion (accent)**, reserved for the primary action of a screen and for selection states; it is never used for error messages or decoration.
 
 ### 2.3 Dark Mode
 
-Dark mode is the **primary showcase** of the app's cool, intellectual identity. The dark palette trends toward deep blue-gray (not pure black or warm charcoal) to create a sense of depth and precision. Surfaces carry slight transparency to allow layer depth to show through. In dark mode, the app should feel like a professional tool — a high-contrast design environment rather than a dimmed-down light mode.
+Dark mode is the **night ink** extension of the same identity: warm near-black surfaces (not blue-black, not charcoal) with paper-white text and a brighter vermilion accent (`#C95B4A`) for legibility. Surfaces carry slight transparency to allow layer depth to show through. In dark mode, the app should feel like a quiet reading room — high contrast where it matters, ink-dark everywhere else.
 
 ---
 
@@ -169,7 +177,7 @@ The cover is the hero. Text and overlays are minimal. Interaction reveals depth 
   [○]               ← selection checkbox, visible in multi-select mode only
 ```
 
-- Progress bar fill: `#3B82F6`; track: surface muted
+- Progress bar fill: accent (vermilion); track: surface muted
 - Hover/long-press menu: `surfaceStrong` background, no shadow — border separation only
 - Selected state: accent-colored checkbox, subtle border on card
 
@@ -189,14 +197,14 @@ Tags are displayed as small monochrome chips — never colorful labels.
 
 ### 6.3 Buttons
 
-No color in buttons. Emphasis is expressed through fill, not hue.
+Color is reserved for the primary action only. Emphasis is expressed through fill, not hue — except for the one vermilion primary.
 
 | Variant | Appearance | Use |
 |---------|-----------|-----|
-| `outline` | Transparent background, border | Default action |
-| `solid` | Filled with surface strong, border | Primary / emphasized action |
+| `outline` | Transparent background, `borderStrong` border | Default action |
+| `solid` | Filled with **accent (vermilion)**, `accentInk` text | Primary / emphasized action |
 
-There is intentionally no "primary blue" or "success green" button. A `solid` button is the strongest call-to-action available.
+A `solid` button is vermilion (light: `#B0392A`, dark: `#C95B4A`). There is only one solid per screen; secondary actions stay outline.
 
 ### 6.4 Header & Navigation
 
@@ -208,7 +216,7 @@ There is intentionally no "primary blue" or "success green" button. A `solid` bu
 
 ### 6.5 Modals & Popovers
 
-- Background: surface, 12 px border radius
+- Background: surface, 5 px border radius
 - Border: border subtle
 - Backdrop: `rgba(0, 0, 0, 0.4)`
 - Entry animation: fade + 8 px upward slide, 300 ms ease-out
@@ -226,7 +234,7 @@ Use a subtle spinner or skeleton — never a full-screen block. For the library 
 Empty states should feel human, not mechanical. Use a large icon (32 px+) from Material Community Icons paired with a brief, friendly message in Noto Serif JP. Offer a clear primary action (e.g., "Connect to a Calibre server").
 
 ### Error
-Display errors inline, not as modal interruptions. Error text in text secondary color. No red error colors — the monochrome palette applies here too. Offer a retry action using an `outline` button.
+Display errors inline, not as modal interruptions. Error text uses accent (vermilion) — it is the one permitted use of the accent for state, alongside primary actions. Offer a retry action using an `outline` button.
 
 ### Success / Confirmation
 Avoid success toasts for routine actions (downloads, saves). Use them only for actions that take more than 2 seconds or could fail silently. Keep duration to 2–3 seconds.
@@ -274,8 +282,8 @@ The viewer is the most important screen. Design for distraction-free reading.
 ### Accessibility
 - All interactive elements: minimum 44×44 px touch target
 - Text contrast: WCAG AA minimum (4.5:1 for body, 3:1 for large text)
-  - Light `#111318` on `#ffffff` ≈ 18.7:1 ✅
-  - Dark `#e6e8ee` on `#0b0c0f` ≈ 15.2:1 ✅
+  - Light `#1B1712` on `#F4EFE6` ≈ 15.6:1 ✅
+  - Dark `#EAE4D9` on `#16130E` ≈ 14.9:1 ✅
 - Do not suppress focus rings on web
 - Meaningful `accessibilityLabel` on all icon-only buttons
 
@@ -297,15 +305,16 @@ Noto Serif JP covers Latin, Japanese, and Korean at all weights. Arabic falls ba
 
 | ❌ Don't | ✅ Do instead |
 |---------|-------------|
-| Colorful primary buttons | `solid` variant button (monochrome) |
-| Warm beige / cream surfaces | Cool blue-gray tones only |
+| Colorful, multi-hue primary buttons | `solid` button — vermilion only |
+| Cool blue-gray / steel surfaces | Washi paper and ink tones only |
+| More than one accent color | One accent: vermilion (primary actions, selection, reading status) |
 | Drop shadows on cards | Border separation (`borderSubtle`) |
-| Decorative gradients | Background wash gradients only, cool-toned |
+| Decorative / saturated gradients | Background wash gradients only, washi-toned |
 | Mixing font families in one element | Noto Serif for content, Space Grotesk for interface |
-| Rounded, friendly corner radii (> 12 px) | Precise, restrained rounding (8–12 px) |
+| Rounded, friendly corner radii (> 5 px) | Precise, restrained rounding (2–5 px) |
 | Spring / bounce animations | 300 ms ease-out fade+slide |
 | Playful or illustrative empty states | Structural icons + terse copy in the app's voice |
-| Color to indicate error or warning | Textual messaging with monochrome icons |
+| Extra red hues for error | Error text in vermilion accent only |
 | Hardcoded `left`/`right` in layout | Flex `start`/`end`, RTL-safe props |
 | Status colors (`#3B82F6`, `#F97316`, `#22C55E`) outside book-status badges | Reserve them strictly for reading status |
 | Full-screen loading spinners | Inline skeletons or localized spinners |

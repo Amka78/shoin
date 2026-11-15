@@ -14,11 +14,11 @@ export type RatingProps = {
 } & ComponentProps<typeof Box>
 
 // 旧 styled 定義のトークン実値 (gluestack config より)。
-// light: $coolGray800 / $coolGray500、dark: $white、selected の背景は $blue500。
+// light: $coolGray800 / $coolGray500、dark: $white、selected の背景はテーマの朱（案A）。
 const LIGHT_BORDER_COLOR = "#1f2937"
 const LIGHT_ICON_COLOR = "#6b7280"
 const DARK_COLOR = "#ffffff"
-const SELECTED_BACKGROUND_COLOR = "#3b82f6"
+const SELECTED_BACKGROUND_COLOR = "#b0392a"
 const RATING_BORDER_RADIUS = 9999
 const RATING_PADDING_HORIZONTAL = 8
 

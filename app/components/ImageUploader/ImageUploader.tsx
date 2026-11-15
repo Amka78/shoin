@@ -1,4 +1,6 @@
-import { Image, type ImageProps } from "@/components"
+import { Image, MaterialCommunityIcon, Text, VStack, type ImageProps } from "@/components"
+import { translate } from "@/i18n"
+import { usePalette } from "@/theme"
 import * as ImagePicker from "expo-image-picker"
 import type { Ref } from "react"
 import { type ImageStyle, Pressable, type StyleProp, StyleSheet } from "react-native"
@@ -8,6 +10,8 @@ export type ImageUploaderProps = ImageProps & {
 }
 
 export const ImageUploader = ({ ref, ...props }: ImageUploaderProps) => {
+  const palette = usePalette()
+  const hasCover = Boolean(props.source)
   const onImageSize = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -23,8 +27,46 @@ export const ImageUploader = ({ ref, ...props }: ImageUploaderProps) => {
     }
   }
   return (
-    <Pressable onPress={onImageSize} ref={ref}>
-      <Image {...props} style={styles.imageSize as StyleProp<ImageStyle>} />
+    <Pressable
+      onPress={onImageSize}
+      ref={ref}
+      accessibilityRole="button"
+      accessibilityLabel={translate("bookEditScreen.selectCover") ?? undefined}
+    >
+      {hasCover ? (
+        <Image
+          {...props}
+          style={[
+            styles.imageSize as StyleProp<ImageStyle>,
+            {
+              borderWidth: 1,
+              borderColor: palette.borderSubtle,
+              borderRadius: 2,
+            },
+          ]}
+        />
+      ) : (
+        <VStack
+          alignItems="center"
+          justifyContent="center"
+          style={[
+            styles.imageSize as StyleProp<ImageStyle>,
+            {
+              borderWidth: 1,
+              borderStyle: "dashed",
+              borderColor: palette.borderStrong,
+              borderRadius: 2,
+              backgroundColor: palette.surfaceMuted,
+            },
+          ]}
+        >
+          <MaterialCommunityIcon name="plus" iconSize="md" color={palette.accent} />
+          <Text
+            tx="bookEditScreen.selectCover"
+            style={{ color: palette.textSecondary, fontSize: 12, marginTop: 6 }}
+          />
+        </VStack>
+      )}
     </Pressable>
   )
 }

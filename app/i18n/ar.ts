@@ -18,6 +18,7 @@ const ar: Translations = {
   },
   bookEditScreen: {
     save: "حفظ",
+    selectCover: "اختيار الغلاف",
     authorSortAutoTooltip: "إنشاء author_sort تلقائيًا من المؤلفين",
     titleSortAutoTooltip: "إنشاء sort تلقائيًا من العنوان",
     titleSeriesAutoTooltip: "تقسيم الرقم الأخير من العنوان إلى series / series_index",

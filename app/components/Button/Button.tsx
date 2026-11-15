@@ -9,13 +9,14 @@ export type ButtonProps = ComponentProps<typeof Template> & {
 export function Button({ variant = "outline", ...restProps }: ButtonProps) {
   const palette = usePalette()
   const props = { variant, ...restProps }
+  const isSolid = variant === "solid"
 
   const [isPending, startTransition] = useTransition()
   return (
     <Template
       {...props}
       borderColor={palette.borderStrong}
-      backgroundColor={variant === "solid" ? palette.surfaceStrong : "transparent"}
+      backgroundColor={isSolid ? palette.accent : "transparent"}
       onPress={(e) => {
         const onPress = props.onPress
         if (onPress) {
@@ -27,9 +28,9 @@ export function Button({ variant = "outline", ...restProps }: ButtonProps) {
       isDisabled={isPending}
     >
       {isPending ? (
-        <ButtonSpinner color={palette.textSecondary} />
+        <ButtonSpinner color={isSolid ? palette.accentInk : palette.textSecondary} />
       ) : (
-        <ButtonText color={palette.textPrimary}>
+        <ButtonText color={isSolid ? palette.accentInk : palette.textPrimary}>
           {restProps.tx ? translate(restProps.tx) : (restProps.children as ReactNode)}
         </ButtonText>
       )}

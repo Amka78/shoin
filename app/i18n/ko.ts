@@ -18,6 +18,7 @@ const ko: Translations = {
   },
   bookEditScreen: {
     save: "저장",
+    selectCover: "표지 선택",
     authorSortAutoTooltip: "저자에서 author_sort 자동 생성",
     titleSortAutoTooltip: "제목에서 sort 자동 생성",
     titleSeriesAutoTooltip: "제목 끝 숫자를 series / series_index로 분리",

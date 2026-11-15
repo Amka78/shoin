@@ -18,6 +18,7 @@ const ja: Translations = {
   },
   bookEditScreen: {
     save: "保存",
+    selectCover: "表紙を選択",
     authorSortAutoTooltip: "著者から author_sort を自動生成",
     titleSortAutoTooltip: "タイトルから sort を自動生成",
     titleSeriesAutoTooltip: "タイトル末尾の数字を series / series_index に分割",
@@ -73,8 +74,7 @@ const ja: Translations = {
   },
   connectScreen: {
     welcome: "ようこそ!!",
-    detail:
-      "Shoin をご利用いただきありがとうございます。まず Calibre の URL を設定してください。",
+    detail: "Shoin をご利用いただきありがとうございます。まず Calibre の URL を設定してください。",
     connectDetail: "Calibre の URL を設定してください。",
     connect: "接続",
     placeHolder: "(http または https)://{Address}:{Port}",

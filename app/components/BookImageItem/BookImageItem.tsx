@@ -16,6 +16,7 @@ import {
   VStack,
 } from "@/components"
 import type { MessageKey } from "@/i18n"
+import { usePalette } from "@/theme"
 
 type IconName = MaterialCommunityIconProps["name"]
 
@@ -63,8 +64,6 @@ const IMAGE_ITEM_WIDTH = 240
 const IMAGE_ITEM_HEIGHT = 300
 const DETAIL_MENU_OVERLAY_INSET = 6
 const DETAIL_MENU_BUTTON_SIZE = 42
-const SELECTED_OUTLINE_COLOR = "#3B82F6"
-const SELECTED_OVERLAY_COLOR = "rgba(59, 130, 246, 0.12)"
 
 function uniqNonEmpty(values: Array<string | null | undefined>): string[] {
   return Array.from(
@@ -119,6 +118,7 @@ export const BookImageItem = memo(function BookImageItem({
   showSelectionDetails = false,
   ...restProps
 }: BookImageprops) {
+  const palette = usePalette()
   const props = { loading, selected, onSelectToggle, showSelectionDetails, ...restProps }
   const [loadingState, setLoadingState] = useState(props.loading)
   const hoverSearchSections = useMemo(
@@ -165,7 +165,10 @@ export const BookImageItem = memo(function BookImageItem({
       {showProgressBar ? (
         <View style={styles.progressBarBg}>
           <View
-            style={[styles.progressBarFill, { width: `${(props.readingProgress ?? 0) * 100}%` }]}
+            style={[
+              styles.progressBarFill,
+              { width: `${(props.readingProgress ?? 0) * 100}%`, backgroundColor: palette.accent },
+            ]}
           />
         </View>
       ) : null}
@@ -259,7 +262,10 @@ export const BookImageItem = memo(function BookImageItem({
       )}
       {selected ? (
         <Box
-          style={styles.selectedOverlay}
+          style={[
+            styles.selectedOverlay,
+            { backgroundColor: palette.accentSoft, borderColor: palette.accent },
+          ]}
           pointerEvents="none"
           testID="book-image-selected-outline"
         />
@@ -276,7 +282,7 @@ const styles = StyleSheet.create({
   imageContainer: {
     height: IMAGE_ITEM_HEIGHT,
     width: IMAGE_ITEM_WIDTH,
-    borderRadius: 10,
+    borderRadius: 5,
     position: "relative",
     overflow: "hidden",
   },
@@ -310,7 +316,6 @@ const styles = StyleSheet.create({
   },
   progressBarFill: {
     height: 4,
-    backgroundColor: "#3B82F6",
   },
   detailMenuOverlay: {
     position: "absolute",
@@ -327,7 +332,7 @@ const styles = StyleSheet.create({
     top: 28,
     left: 6,
     right: 6,
-    borderRadius: 10,
+    borderRadius: 5,
     backgroundColor: "rgba(0, 0, 0, 0.72)",
     paddingHorizontal: 8,
     paddingVertical: 8,
@@ -377,10 +382,8 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: SELECTED_OVERLAY_COLOR,
     borderWidth: 3,
-    borderColor: SELECTED_OUTLINE_COLOR,
-    borderRadius: 10,
+    borderRadius: 5,
     pointerEvents: "none",
   },
 })
