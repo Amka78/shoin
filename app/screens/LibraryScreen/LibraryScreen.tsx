@@ -367,24 +367,35 @@ export const LibraryScreen: FC = observer(() => {
   // biome-ignore lint/correctness/useExhaustiveDependencies: navigation.setOptions is stable; navigation prop is not a dep in React Navigation patterns
   useLayoutEffect(() => {
     navigation.setOptions({
-      headerLeft: (props) => {
-        return (
-          <IconButton
-            name="arrow-left"
-            onPress={() => {
-              if (handleBackPress()) return
-              if (navigation.canGoBack()) {
-                navigation.goBack()
-              } else if (convergenceHook.isLarge) {
-                modal.openModal("CalibreRootModal", {})
-              } else {
-                navigation.navigate("CalibreRoot")
-              }
-            }}
-            iconSize="md-"
-          />
-        )
-      },
+      // デスクトップは Library がルート画面のため「戻る」は不要。代わりにライブラリ切替（CalibreRootModal）を開く。
+      headerLeft: convergenceHook.isLarge
+        ? (props) => {
+            return (
+              <IconButton
+                name="bookshelf"
+                onPress={() => {
+                  modal.openModal("CalibreRootModal", {})
+                }}
+                iconSize="md-"
+              />
+            )
+          }
+        : (props) => {
+            return (
+              <IconButton
+                name="arrow-left"
+                onPress={() => {
+                  if (handleBackPress()) return
+                  if (navigation.canGoBack()) {
+                    navigation.goBack()
+                  } else {
+                    navigation.navigate("CalibreRoot")
+                  }
+                }}
+                iconSize="md-"
+              />
+            )
+          },
       headerTitle: () => (
         <LibrarySearchHeader
           convergenceHook={convergenceHook}

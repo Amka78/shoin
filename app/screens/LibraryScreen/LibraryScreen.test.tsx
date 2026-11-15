@@ -1,4 +1,4 @@
-import { act, render, screen } from "@testing-library/react"
+import { act, fireEvent, render, screen, within } from "@testing-library/react"
 import type { ReactNode } from "react"
 import {
   describe as baseDescribe,
@@ -19,9 +19,11 @@ const openModalMock = vi.fn()
 const bookListItemProps: Array<Record<string, unknown>> = []
 const bookImageItemProps: Array<Record<string, unknown>> = []
 const libraryTableItemProps: Array<Record<string, unknown>> = []
+const iconButtonProps: Array<Record<string, unknown>> = []
 const selectionActionBarProps: Array<Record<string, unknown>> = []
 const scrollViewProps: Array<Record<string, unknown>> = []
 const navigationMock = {
+  canGoBack: vi.fn(() => false),
   goBack: vi.fn(),
   navigate: vi.fn(),
   setOptions: vi.fn(),
@@ -113,7 +115,19 @@ const componentsMock = {
   Heading: ({ children, testID }: { children?: ReactNode; testID?: string }) => (
     <h2 data-testid={testID}>{children}</h2>
   ),
-  IconButton: ({ children }: { children?: ReactNode }) => <button type="button">{children}</button>,
+  IconButton: (props: Record<string, unknown>) => {
+    iconButtonProps.push(props)
+    return (
+      <button
+        type="button"
+        onClick={() => {
+          ;(props.onPress as (() => void) | undefined)?.()
+        }}
+      >
+        {props.children as ReactNode}
+      </button>
+    )
+  },
   Image: () => <img alt="" />,
   LeftSideMenu: () => null,
   LeftSideMenuContent: () => null,
@@ -424,9 +438,16 @@ function getBeforeRemoveHandler() {
   }) => void
 }
 
+function getLatestHeaderLeft() {
+  const setOptionsMock = navigationMock.setOptions as ReturnType<typeof vi.fn>
+  const options = setOptionsMock.mock.calls.at(-1)?.[0] as Record<string, unknown> | undefined
+  return options?.headerLeft as ((props: Record<string, unknown>) => ReactNode) | undefined
+}
+
 beforeEach(() => {
   bookImageItemProps.length = 0
   bookListItemProps.length = 0
+  iconButtonProps.length = 0
   libraryTableItemProps.length = 0
   scrollViewProps.length = 0
   selectionActionBarProps.length = 0
@@ -688,6 +709,41 @@ describe("LibraryScreen", () => {
 
     expect(event.preventDefault).not.toHaveBeenCalled()
     expect(selectedLibrary.searchSetting.setProp).not.toHaveBeenCalled()
+  })
+
+  test("desktop header shows a library switch button that opens CalibreRootModal instead of a back button", () => {
+    renderLibraryScreen({
+      isLarge: true,
+    })
+
+    const headerLeft = getLatestHeaderLeft()
+    expect(headerLeft).toBeTruthy()
+
+    const { container } = render(<div>{headerLeft?.({})}</div>)
+    const headerButton = within(container).getByRole("button")
+    const headerProps = iconButtonProps.find((props) => props.name === "bookshelf")
+
+    expect(headerProps).toBeTruthy()
+    fireEvent.click(headerButton)
+    expect(openModalMock).toHaveBeenCalledWith("CalibreRootModal", {})
+  })
+
+  test("mobile header keeps the back button and navigates to CalibreRoot without a modal", () => {
+    renderLibraryScreen({
+      isLarge: false,
+    })
+
+    const headerLeft = getLatestHeaderLeft()
+    expect(headerLeft).toBeTruthy()
+
+    const { container } = render(<div>{headerLeft?.({})}</div>)
+    const headerButton = within(container).getByRole("button")
+    const headerProps = iconButtonProps.find((props) => props.name === "arrow-left")
+
+    expect(headerProps).toBeTruthy()
+    fireEvent.click(headerButton)
+    expect(openModalMock).not.toHaveBeenCalled()
+    expect(navigationMock.navigate).toHaveBeenCalledWith("CalibreRoot")
   })
 
   test("bulk edit opens a screen on mobile", () => {
