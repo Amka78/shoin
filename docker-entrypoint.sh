@@ -46,7 +46,7 @@ if [ "$CALIBRE_PROXY_ENABLED" = "1" ]; then
     export CALIBRE_PROXY_PORT=8082
     export CALIBRE_PROXY_ALLOWED_HOSTS="${CALIBRE_PROXY_ALLOWED_HOSTS:-}"
     echo "[entrypoint] Starting Calibre proxy on 127.0.0.1:${CALIBRE_PROXY_PORT}..."
-    /usr/local/bin/web-calibre-proxy &
+    node /usr/local/bin/web-calibre-proxy.cjs &
 
     PROXY_READY=0
     i=0

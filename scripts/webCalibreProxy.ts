@@ -4,7 +4,14 @@
  * nginx が TLS と静的配信を担当し、`/__calibre/...` だけをこのプロセスへ転送する。
  * 外部公開を想定するため、CALIBRE_PROXY_ALLOWED_HOSTS で上流を制限できる。
  * 許可リストが空の場合は全ホストを許可する（LAN 専用なら空でもよい）。
+ *
+ * 実行環境: 自宅サーバー（Core 2 Duo E7500）では Bun のコンパイル産物（JSC）が
+ * Illegal instruction で起動しないため、`bun build --target=node` のバンドルを
+ * Node で実行する。ここに Bun 固有 API（Bun.serve 等）を入れてはいけない。
  */
+import { createServer } from "node:http"
+import { Readable } from "node:stream"
+import type { ReadableStream } from "node:stream/web"
 import {
   buildCorsHeaders,
   isAllowedCalibreHost,
@@ -29,38 +36,74 @@ if (allowedHosts.length === 0) {
   )
 }
 
-const server = Bun.serve({
-  hostname,
-  port,
-  async fetch(request) {
-    const { pathname } = new URL(request.url)
+const server = createServer(async (req, res) => {
+  let requestUrl: URL
+  try {
+    requestUrl = new URL(req.url ?? "/", `http://${req.headers.host ?? hostname}`)
+  } catch {
+    res.writeHead(400)
+    res.end("Bad Request")
+    return
+  }
 
-    if (pathname === "/__calibre/health") {
-      return new Response("ok")
-    }
+  if (requestUrl.pathname === "/__calibre/health") {
+    res.writeHead(200, { "content-type": "text/plain" })
+    res.end("ok")
+    return
+  }
 
-    const target = resolveCalibreTarget(request.url)
-    if (!target) {
-      return new Response("Not a Calibre proxy request", {
-        status: 404,
-        headers: buildCorsHeaders(request),
-      })
-    }
+  // IncomingMessage → Web Request。body は undici がストリーム（AsyncIterable）として読める。
+  const headers = new Headers()
+  for (const [key, values] of Object.entries(req.headers)) {
+    if (values === undefined) continue
+    headers.set(key, Array.isArray(values) ? values.join(", ") : values)
+  }
+  const init: RequestInit = { method: req.method, headers }
+  if (req.method !== "GET" && req.method !== "HEAD") {
+    init.body = req as unknown as BodyInit
+    ;(init as RequestInit & { duplex: string }).duplex = "half"
+  }
+  const request = new Request(requestUrl.href, init)
 
-    if (!isAllowedCalibreHost(target, allowedHosts)) {
-      console.warn(`[calibre-proxy] blocked target: ${target.host}`)
-      return new Response("Calibre proxy target is not allowed", {
-        status: 403,
-        headers: buildCorsHeaders(request),
-      })
-    }
+  const target = resolveCalibreTarget(requestUrl.href)
+  if (!target) {
+    res.writeHead(404, buildCorsHeaders(request))
+    res.end("Not a Calibre proxy request")
+    return
+  }
 
-    // リダイレクトを追うと許可リストを迂回できるため、公開プロキシでは追跡しない。
-    return proxyCalibreRequest(request, target, { redirect: "error" })
-  },
+  if (!isAllowedCalibreHost(target, allowedHosts)) {
+    console.warn(`[calibre-proxy] blocked target: ${target.host}`)
+    res.writeHead(403, buildCorsHeaders(request))
+    res.end("Calibre proxy target is not allowed")
+    return
+  }
+
+  // リダイレクトを追うと許可リストを迂回できるため、公開プロキシでは追跡しない。
+  const upstream = await proxyCalibreRequest(request, target, { redirect: "error" })
+
+  res.writeHead(
+    upstream.status,
+    upstream.statusText ? upstream.statusText : undefined,
+    Object.fromEntries(upstream.headers),
+  )
+  if (upstream.body) {
+    Readable.fromWeb(upstream.body as ReadableStream).pipe(res)
+  } else {
+    res.end()
+  }
 })
 
-console.log(`[calibre-proxy] listening on http://${hostname}:${server.port}`)
-console.log(
-  `[calibre-proxy] allowed hosts: ${allowedHosts.length ? allowedHosts.join(", ") : "(any)"}`,
-)
+server.on("error", (err) => {
+  console.error("[calibre-proxy] server error:", err)
+  process.exit(1)
+})
+
+server.listen(port, hostname, () => {
+  const addr = server.address()
+  const actualPort = typeof addr === "object" && addr !== null ? addr.port : port
+  console.log(`[calibre-proxy] listening on http://${hostname}:${actualPort}`)
+  console.log(
+    `[calibre-proxy] allowed hosts: ${allowedHosts.length ? allowedHosts.join(", ") : "(any)"}`,
+  )
+})

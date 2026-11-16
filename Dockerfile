@@ -24,19 +24,18 @@ COPY . .
 RUN timeout 900 bunx expo export --platform web --output-dir dist && \
     [ -f dist/index.html ]
 
-# Web リリース用 Calibre プロキシ。最終段は nginx:alpine（musl）なので musl 向けに
-# 単体バイナリへコンパイルする。Bun ランタイムを最終イメージへ入れる必要がなくなる。
-# baseline は AVX2 を要求しない旧 CPU（Core 2 Duo 等）でも実行できる musl ビルド。
-# 非 baseline（bun-linux-x64-musl）は新しい Bun で AVX2 前提になり SIGILL で即死する。
-RUN bun build --compile --minify --target=bun-linux-x64-baseline-musl \
-    scripts/webCalibreProxy.ts --outfile web-calibre-proxy
+# Web リリース用 Calibre プロキシ。自宅サーバー（Core 2 Duo E7500）では Bun の
+# コンパイル産物（JSC）が Illegal instruction で起動しないため、Node で動く
+# バンドルに変換する。生成は CI のモダン CPU 上で行い、実行はサーバー上の Node。
+RUN bun build scripts/webCalibreProxy.ts --target=node --format=cjs \
+    --outfile web-calibre-proxy.cjs
 
 # Stage 2: Serve
 FROM nginx:alpine
 
 # 自己署名証明書の生成（openssl）・nginx.conf テンプレートの展開（envsubst）・
-# Calibre プロキシ（musl 版 Bun ランタイムが libstdc++ を要求）に必要
-RUN apk add --no-cache openssl gettext libstdc++
+# Calibre プロキシの実行（nodejs。V8 は E7500 でも動作し、Bun/JSC は SIGILL になる）
+RUN apk add --no-cache openssl gettext nodejs
 
 # nginx.conf はテンプレート。エントリポイントが ${HTTPS_PORT} を展開して
 # /etc/nginx/conf.d/default.conf を生成する（HTTPS 用のサーバーブロックを含む）
@@ -45,7 +44,7 @@ COPY docker-entrypoint.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 COPY --from=builder /app/dist /usr/share/nginx/html
-COPY --from=builder /app/web-calibre-proxy /usr/local/bin/web-calibre-proxy
+COPY --from=builder /app/web-calibre-proxy.cjs /usr/local/bin/web-calibre-proxy.cjs
 
 EXPOSE 80 443
 
