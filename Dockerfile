@@ -1,5 +1,8 @@
 # Stage 1: Build
-FROM oven/bun:1 AS builder
+# oven/bun:1 は浮動タグのため再ビルドごとに Bun が進み、生成バイナリの要求命令セットが
+# 上がってサーバー（Core 2 Duo E7500 等の旧 CPU）で Illegal instruction になる事故があった。
+# バージョンを固定して再現性を確保する（上げるときは意図的に行う）。
+FROM oven/bun:1.4.4 AS builder
 
 WORKDIR /app
 
@@ -23,7 +26,9 @@ RUN timeout 900 bunx expo export --platform web --output-dir dist && \
 
 # Web リリース用 Calibre プロキシ。最終段は nginx:alpine（musl）なので musl 向けに
 # 単体バイナリへコンパイルする。Bun ランタイムを最終イメージへ入れる必要がなくなる。
-RUN bun build --compile --minify --target=bun-linux-x64-musl \
+# baseline は AVX2 を要求しない旧 CPU（Core 2 Duo 等）でも実行できる musl ビルド。
+# 非 baseline（bun-linux-x64-musl）は新しい Bun で AVX2 前提になり SIGILL で即死する。
+RUN bun build --compile --minify --target=bun-linux-x64-baseline-musl \
     scripts/webCalibreProxy.ts --outfile web-calibre-proxy
 
 # Stage 2: Serve

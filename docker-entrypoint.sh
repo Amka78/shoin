@@ -50,7 +50,8 @@ if [ "$CALIBRE_PROXY_ENABLED" = "1" ]; then
 
     PROXY_READY=0
     i=0
-    while [ "$i" -lt 50 ]; do
+    # 旧 CPU や高負荷時は起動に時間がかかるため 30 秒まで待つ（50 回 × 0.1 秒では短すぎた）
+    while [ "$i" -lt 300 ]; do
         if wget -q -O /dev/null "http://127.0.0.1:${CALIBRE_PROXY_PORT}/__calibre/health" 2>/dev/null; then
             PROXY_READY=1
             break
