@@ -1,10 +1,37 @@
-import { getSnapshot, type Instance, type SnapshotOut, types } from "mobx-state-tree"
+import { type Instance, type SnapshotOut, getSnapshot, types } from "mobx-state-tree"
 import { api } from "../services/api"
+import {
+  COVER_SIZE_CLAMP,
+  type CoverSize,
+  type CoverSizeBreakpoint,
+  type CoverSizeMode,
+} from "../utils/coverSize"
 
 const ApiModel = types.model("ApiModel").props({
   baseUrl: types.maybe(types.string),
   initialPath: types.maybeNull(types.string),
   isOpds: types.maybe(types.boolean),
+})
+
+const CoverSizeModel = types.model("CoverSizeModel", {
+  width: types.number,
+  height: types.number,
+})
+
+/** 帯（sm/md/lg）ごとの上書きサイズ。未指定の帯は undefined（基準値を使う） */
+export const CoverSizeByBreakpointModel = types.model("CoverSizeByBreakpointModel", {
+  sm: types.maybe(CoverSizeModel),
+  md: types.maybe(CoverSizeModel),
+  lg: types.maybe(CoverSizeModel),
+})
+
+/** モードごとの帯別上書き。auto を含む全モードに持たせられる */
+const CoverSizeOverridesByModeModel = types.model("CoverSizeOverridesByModeModel", {
+  auto: types.optional(CoverSizeByBreakpointModel, {}),
+  s: types.optional(CoverSizeByBreakpointModel, {}),
+  m: types.optional(CoverSizeByBreakpointModel, {}),
+  l: types.optional(CoverSizeByBreakpointModel, {}),
+  custom: types.optional(CoverSizeByBreakpointModel, {}),
 })
 
 export const SettingStoreModel = types
@@ -36,6 +63,17 @@ export const SettingStoreModel = types
     libraryTableColumnWidths: types.optional(types.map(types.number), {}),
     libraryTableColumnVisibility: types.optional(types.map(types.boolean), {}),
     bulkEditAutoRefresh: types.optional(types.boolean, true),
+    coverSizeMode: types.optional(
+      types.union(
+        types.literal("auto"),
+        types.literal("s"),
+        types.literal("m"),
+        types.literal("l"),
+        types.literal("custom"),
+      ),
+      "auto",
+    ),
+    coverSizeOverridesByMode: types.optional(CoverSizeOverridesByModeModel, {}),
   })
   .views((store) => ({
     getLibraryViewMode(isLargeScreen: boolean): "grid" | "list" | "table" {
@@ -101,6 +139,32 @@ export const SettingStoreModel = types
     },
     setBulkEditAutoRefresh(enabled: boolean) {
       store.bulkEditAutoRefresh = enabled
+    },
+    setCoverSizeMode(mode: CoverSizeMode) {
+      store.coverSizeMode = mode
+    },
+    setCoverSizeOverride(
+      mode: CoverSizeMode,
+      breakpoint: CoverSizeBreakpoint,
+      size: CoverSize | null,
+    ) {
+      const target = store.coverSizeOverridesByMode[mode]
+      const next: CoverSize | undefined =
+        size == null
+          ? undefined
+          : {
+              width: Math.min(
+                COVER_SIZE_CLAMP.width.max,
+                Math.max(COVER_SIZE_CLAMP.width.min, Math.round(size.width)),
+              ),
+              height: Math.min(
+                COVER_SIZE_CLAMP.height.max,
+                Math.max(COVER_SIZE_CLAMP.height.min, Math.round(size.height)),
+              ),
+            }
+      if (breakpoint === "sm") target.sm = next
+      else if (breakpoint === "md") target.md = next
+      else target.lg = next
     },
   }))
 

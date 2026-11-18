@@ -53,6 +53,9 @@ export type BookImageprops = Pick<ImageProps, "source"> & {
   hoverSearchMetadata?: BookImageHoverSearchMetadata
   onHoverSearchPress?: (query: string) => void | Promise<void>
   showSelectionDetails?: boolean
+  /** グリッド表示の表紙サイズ（未指定時は既定 IMAGE_ITEM_WIDTH/HEIGHT） */
+  coverWidth?: number
+  coverHeight?: number
 }
 
 const STATUS_ICON: Record<ReadStatusValue, { name: IconName; color: string }> = {
@@ -120,6 +123,10 @@ export const BookImageItem = memo(function BookImageItem({
 }: BookImageprops) {
   const palette = usePalette()
   const props = { loading, selected, onSelectToggle, showSelectionDetails, ...restProps }
+  const coverSizeStyle = {
+    width: props.coverWidth ?? IMAGE_ITEM_WIDTH,
+    height: props.coverHeight ?? IMAGE_ITEM_HEIGHT,
+  }
   const [loadingState, setLoadingState] = useState(props.loading)
   const hoverSearchSections = useMemo(
     () => buildHoverSearchSections(props.hoverSearchMetadata),
@@ -138,10 +145,10 @@ export const BookImageItem = memo(function BookImageItem({
 
   const statusIconConfig = props.readStatus ? STATUS_ICON[props.readStatus] : null
 
-  const image = <Image source={props.source} style={styles.imageSize} contentFit={"fill"} />
+  const image = <Image source={props.source} style={[styles.imageSize, coverSizeStyle]} contentFit={"fill"} />
   const shouldUsePressable = Boolean(props.onPress || props.onLongPress || props.detailMenuProps)
   const contentWithMenu = (
-    <Box testID="book-image-selection-surface" style={styles.imageContainer}>
+    <Box testID="book-image-selection-surface" style={[styles.imageContainer, coverSizeStyle]}>
       {image}
       {props.showCachedIcon ? (
         <Pressable
@@ -253,7 +260,7 @@ export const BookImageItem = memo(function BookImageItem({
     <Box marginHorizontal={"$2"} marginTop={"$2"}>
       {loading || loadingState ? (
         <LabeledSpinner
-          containerStyle={styles.imageSize}
+          containerStyle={[styles.imageSize, coverSizeStyle]}
           labelTx={"bookImage.loading"}
           labelDirection="vertical"
         />

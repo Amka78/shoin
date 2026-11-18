@@ -6,6 +6,7 @@ import {
   type FlatList,
   HStack,
   IconButton,
+  LEFT_SIDE_MENU_WIDTH,
   LeftSideMenu,
   LibraryActions,
   type QueryOperator,
@@ -29,6 +30,7 @@ import type { Book } from "@/models/calibre"
 import type { ApppNavigationProp } from "@/navigators/types"
 import { api } from "@/services/api"
 import { deleteCachedBookImages } from "@/utils/bookImageCache"
+import { getGridCoverSize, getGridNumColumns } from "@/utils/coverSize"
 import { getNextLibraryViewMode, normalizeLibraryViewMode } from "@/utils/libraryViewMode"
 import { perfLog, perfNow } from "@/utils/perf"
 import { useIsFocused, useNavigation } from "@react-navigation/native"
@@ -172,6 +174,12 @@ export const LibraryScreen: FC = observer(() => {
 
   const convergenceHook = useConvergence()
   const window = useWindowDimensions()
+
+  const coverSize = getGridCoverSize({
+    mode: settingStore.coverSizeMode,
+    overridesByMode: settingStore.coverSizeOverridesByMode,
+    windowWidth: window.width,
+  })
 
   const canUseTableMode = convergenceHook.isDesktop
   const viewMode = normalizeLibraryViewMode(
@@ -616,6 +624,8 @@ export const LibraryScreen: FC = observer(() => {
       return (
         <BookImageItem
           source={imageSource}
+          coverWidth={coverSize.width}
+          coverHeight={coverSize.height}
           showCachedIcon={hasReadingHistory}
           onCachedIconPress={onClearBookCache}
           readingProgress={readingProgress}
@@ -653,6 +663,7 @@ export const LibraryScreen: FC = observer(() => {
       readingProgressById,
       thumbnailSourceById,
       viewMode,
+      coverSize,
       calibreRootStore,
       settingStore,
       tableColumnWidths,
@@ -840,7 +851,15 @@ export const LibraryScreen: FC = observer(() => {
           bookList={bookList}
           listRef={listRef}
           renderItem={renderItem}
-          numColumns={viewMode === "grid" ? Math.max(1, Math.floor(window.width / 242)) : 1}
+          numColumns={
+            viewMode === "grid"
+              ? getGridNumColumns({
+                  windowWidth: window.width,
+                  coverWidth: coverSize.width,
+                  sidebarWidth: convergenceHook.isLarge ? LEFT_SIDE_MENU_WIDTH : 0,
+                })
+              : 1
+          }
           isFocused={isFocused}
           handleListScroll={handleListScroll}
           restoreScrollOffset={restoreScrollOffset}
