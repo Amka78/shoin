@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react"
-import { expect } from "@storybook/test"
 import { findByTestId } from "@testing-library/react"
+import { expect } from "storybook/test"
 import { ScreenContainer } from "../../../.storybook/stories/screens/ScreenContainer"
 import { BulkEditScreen } from "./BulkEditScreen"
 

@@ -1,8 +1,8 @@
 import { BookListItem } from "@/components"
 import type { Book } from "@/models/calibre/BookModel"
 import type { Meta, StoryFn, StoryObj } from "@storybook/react"
-import { expect, fn, userEvent, within } from "@storybook/test"
 import React from "react"
+import { expect, fn, userEvent, within } from "storybook/test"
 
 import { ComponentHolder } from "../../../.storybook/stories/ComponentHolder"
 

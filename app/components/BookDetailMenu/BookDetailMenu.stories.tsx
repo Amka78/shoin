@@ -1,6 +1,6 @@
-import { act, fireEvent } from "@testing-library/react"
 import type { Meta, StoryObj } from "@storybook/react"
-import { expect, fn, waitFor } from "@storybook/test"
+import { act, fireEvent } from "@testing-library/react"
+import { expect, fn, waitFor } from "storybook/test"
 import { BookDetailMenu } from "./BookDetailMenu"
 
 import { ComponentHolder } from "../../../.storybook/stories/ComponentHolder"

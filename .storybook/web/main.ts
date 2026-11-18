@@ -9,7 +9,9 @@ const config: StorybookConfig = {
     "../../app/screens/**/*.stories.?(ts|tsx|js|jsx)",
     "../stories/**/*.stories.?(ts|tsx|js|jsx)",
   ],
-  addons: ["@storybook/addon-links", "@storybook/addon-essentials", "storybook-dark-mode"],
+  // Storybook 9 では actions / controls / docs 等は core へ統合されたため
+  // addon-essentials / addon-links / addon-actions の登録は不要。
+  addons: ["@storybook/addon-vitest", "storybook-dark-mode"],
   viteFinal(viteConfig) {
     viteConfig.plugins = [...(viteConfig.plugins ?? []), tsconfigPaths(), ...rnw()]
 

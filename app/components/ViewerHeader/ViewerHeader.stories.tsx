@@ -1,6 +1,6 @@
 import { ViewerHeader } from "@/components"
 import type { Meta, StoryObj } from "@storybook/react"
-import { fn } from "@storybook/test"
+import { fn } from "storybook/test"
 
 import { ComponentHolder } from "../../../.storybook/stories/ComponentHolder"
 import {

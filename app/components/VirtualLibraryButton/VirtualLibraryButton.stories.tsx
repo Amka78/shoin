@@ -1,7 +1,7 @@
 import { VirtualLibraryButton } from "@/components"
 import type { Meta, StoryObj } from "@storybook/react"
-import { expect, fn, userEvent, within } from "@storybook/test"
 import React from "react"
+import { expect, fn, userEvent, within } from "storybook/test"
 import { ComponentHolder } from "../../../.storybook/stories/ComponentHolder"
 
 export default {

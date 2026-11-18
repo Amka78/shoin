@@ -1,5 +1,5 @@
 import path from "node:path"
-import { storybookTest } from "@storybook/experimental-addon-test/vitest-plugin"
+import { storybookTest } from "@storybook/addon-vitest/vitest-plugin"
 import commonjs from "vite-plugin-commonjs"
 import tsconfigPaths from "vite-tsconfig-paths"
 import { defineConfig } from "vitest/config"
@@ -9,16 +9,17 @@ export default defineConfig({
     projects: [
       {
         // storybookTest() は .storybook/web の Vite 設定（viteFinal の rnw / tsconfigPaths）を
-        // マージし、test.include を stories glob から生成する。実ブラウザ必須（8.6 系の
-        // experimental-addon-test は @vitest/browser/context に依存するため jsdom 不可）。
+        // マージし、test.include を stories glob から生成する。実ブラウザ必須（addon-vitest は
+        // @vitest/browser/context に依存するため jsdom 不可）。
         plugins: [storybookTest({ configDir: ".storybook/web" })],
         // 実行中に Vite が新規依存を最適化すると full reload が走り、
         // "Vitest failed to find the runner" でテストファイルごと落ちる。事前に宣言する。
         optimizeDeps: {
           include: [
             "@storybook/react",
-            "@storybook/experimental-addon-test/preview",
+            "@storybook/addon-vitest/vitest-plugin",
             "@storybook/theming",
+            "storybook/test",
             "reactotron-core-client",
             "reactotron-mst",
             "reactotron-react-js",

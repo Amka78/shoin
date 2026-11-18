@@ -1,6 +1,6 @@
 import { Rating } from "@/components"
 import type { Meta, StoryObj } from "@storybook/react"
-import { fn, within, expect, waitFor, fireEvent } from "@storybook/test"
+import { expect, fireEvent, fn, waitFor, within } from "storybook/test"
 
 import { ComponentHolder } from "../../../.storybook/stories/ComponentHolder"
 
