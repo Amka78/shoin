@@ -96,6 +96,8 @@ export const CalibreRootStore = types
   .actions((root) => ({
     initialize: flow(function* () {
       const response = yield api.initializeCalibre()
+      // TEMP DIAGNOSTIC
+      console.log("TEMP DIAGNOSTIC CalibreRootStore.initialize kind", (response as { kind?: string })?.kind)
       if (response.kind === "ok") {
         const data: ApiCalibreInterfaceType = response.data
         root.defaultLibraryId = data.default_library_id ?? null

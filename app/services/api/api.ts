@@ -729,9 +729,13 @@ export class Api {
     const response: ApiResponse<ApiCalibreInterfaceType> = await this.apisauce.get(
       `/interface-data/update?${Date.now()}`,
     )
+    // TEMP DIAGNOSTIC
+    console.log("TEMP DIAGNOSTIC initializeCalibre response", JSON.stringify({ ok: response.ok, status: response.status, problem: response.problem, baseURL: this.apisauce.getBaseURL() }))
 
     if (!response.ok) {
       const problem = getGeneralApiProblem(response)
+      // TEMP DIAGNOSTIC
+      console.log("TEMP DIAGNOSTIC initializeCalibre problem", JSON.stringify(problem))
       if (problem) return problem
     }
 

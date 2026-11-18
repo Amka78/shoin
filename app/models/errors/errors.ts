@@ -70,8 +70,12 @@ export class ApiError {
 
 export function handleCommonApiError(apiProblem: GeneralApiProblem) {
   const modal = modalfy<ModalStackParams>()
+  // TEMP DIAGNOSTIC
+  console.log("TEMP DIAGNOSTIC handleCommonApiError", JSON.stringify(apiProblem), "modal?", Boolean(modal))
   switch (apiProblem.kind) {
     case "unauthorized":
+      // TEMP DIAGNOSTIC
+      console.log("TEMP DIAGNOSTIC opening LoginModal")
       openModalDeferred(modal, "LoginModal")
       break
     case "cannot-connect":
